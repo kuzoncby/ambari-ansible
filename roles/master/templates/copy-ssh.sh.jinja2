@@ -1,0 +1,5 @@
+#!/bin/bash
+
+{% for host in groups['nodes'] %}
+    sshpass -p {{ ansible_ssh_pass }} ssh-copy-id {{ ansible_ssh_user }}@{{ host }}
+{% endfor %}

@@ -1,0 +1,56 @@
+- name: Install Ambari Agent
+  yum:
+    name: ambari-agent
+    state: latest
+
+- name: "Create partition on {{ hdfs_disk }}"
+  parted:
+    device: "{{ hdfs_disk }}"
+    number: 1
+    state: present
+  when: create_disk == "true"
+
+- name: "Create partition on {{ database_disk }}"
+  parted:
+    device: "{{ database_disk }}"
+    number: 1
+    state: present
+  when: create_disk == "true"
+
+- name: "Format disk {{ hdfs_disk }}1"
+  filesystem:
+    fstype: "{{ disk_format}}"
+    dev: "{{ hdfs_disk }}1"
+    opts: '-K'
+  when: create_disk == "true"
+
+- name: "Format disk {{ database_disk }}1"
+  filesystem:
+    fstype: "{{ disk_format}}"
+    dev: "{{ database_disk }}1"
+    opts: '-K'
+  when: create_disk == "true"
+
+- name: Create mount point
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /data/hdfs
+    - /data/database
+
+- name: Mount HDFS partition
+  mount:
+    path: /data/hdfs
+    src: "{{ hdfs_disk }}1"
+    fstype: "{{ disk_format}}"
+    opts: "{{ mount_opts }}"
+    state: mounted
+
+- name: Mount Database partition
+  mount:
+    path: /data/database
+    src: "{{ hdfs_disk }}1"
+    fstype: "{{ disk_format}}"
+    opts: "{{ mount_opts }}"
+    state: mounted

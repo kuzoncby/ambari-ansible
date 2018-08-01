@@ -1,0 +1,47 @@
+- name: Setup Full Hostname
+  hostname:
+    name: '{{ inventory_hostname }}'
+
+- name: Disable SELinux
+  selinux:
+    policy: targeted
+    state: permissive
+
+- name: Disable firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: "Render ambari repo"
+  template:
+    src: ambari.repo.jinja2
+    dest: /etc/yum.repos.d/ambari.repo
+
+- name: Install packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - java-1.8.0-openjdk-devel
+    - mysql-connector-java
+    - sshpass
+
+- name: "Render JAVA_HOME"
+  template:
+    src: java.sh.jinja2
+    dest: /etc/profile.d/java.sh
+
+- name: Config yum address
+  shell: "sed -i 's/mirror.centos.org/{{ centos_yum_mirror }}/g' /etc/yum.repos.d/*"
+
+- name: Generate SSH Key
+  shell: "yes | ssh-keygen -t rsa -P '' -f /root/.ssh/id_rsa"
+
+- name: Config SSH
+  copy:
+    src: ssh-config.txt
+    dest: /root/.ssh/config
+    owner: root
+    group: root
+    mode: 0600

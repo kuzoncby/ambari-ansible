@@ -1,0 +1,22 @@
+- name: Install Ambari Server
+  yum:
+    name: ambari-server
+    state: latest
+
+- name: Setup Ambari Server
+  shell: "ambari-server setup --java-home=${JAVA_HOME} -s"
+
+- name: Setup Ambari Server JDBC
+  shell: "ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-connector-java.jar"
+
+- name: Start Ambari Server
+  shell: "ambari-server start"
+  ignore_errors: True
+
+- name: Render copy ssh key
+  template:
+    src: copy-ssh.sh.jinja2
+    dest: /tmp/copy-ssh.sh
+
+- name: Copy SSH Key
+  shell: bash /tmp/copy-ssh.sh
